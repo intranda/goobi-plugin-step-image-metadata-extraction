@@ -37,14 +37,14 @@ import net.xeoh.plugins.base.annotations.PluginImplementation;
 @PluginImplementation
 @Log4j2
 public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
-    
+
     @Getter
     private String title = "intranda_step_imageMetadataExtraction";
     @Getter
     private Step step;
     @Getter
     private String value;
-    @Getter 
+    @Getter
     private boolean allowTaskFinishButtons;
     private String returnPath;
 
@@ -52,17 +52,17 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
     public void initialize(Step step, String returnPath) {
         this.returnPath = returnPath;
         this.step = step;
-                
+
         // read parameters from correct block in configuration file
         SubnodeConfiguration myconfig = ConfigPlugins.getProjectAndStepConfig(title, step);
-        value = myconfig.getString("value", "default value"); 
+        value = myconfig.getString("value", "default value");
         allowTaskFinishButtons = myconfig.getBoolean("allowTaskFinishButtons", false);
         log.info("ImageMetadataExtraction step plugin initialized");
     }
 
     @Override
     public PluginGuiType getPluginGuiType() {
-        return PluginGuiType.FULL;
+        return PluginGuiType.NONE;
         // return PluginGuiType.PART;
         // return PluginGuiType.PART_AND_FULL;
         // return PluginGuiType.NONE;
@@ -87,7 +87,7 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
     public String finish() {
         return "/uii" + returnPath;
     }
-    
+
     @Override
     public int getInterfaceVersion() {
         return 0;
@@ -97,7 +97,7 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
     public HashMap<String, StepReturnValue> validate() {
         return null;
     }
-    
+
     @Override
     public boolean execute() {
         PluginReturnValue ret = run();
@@ -106,13 +106,24 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
 
     @Override
     public PluginReturnValue run() {
-        boolean successfull = true;
-        // your logic goes here
-        
-        log.info("ImageMetadataExtraction step plugin executed");
-        if (!successfull) {
-            return PluginReturnValue.ERROR;
-        }
+
+        // open metadata
+
+        // list files in image folder
+
+        // order files in image folder
+
+        // check/create pagination
+
+
+        // read image metadata
+
+        // extract image metadata fields
+
+        // create/update metadata fields
+
+        // save metadata
+
         return PluginReturnValue.FINISH;
     }
 }
