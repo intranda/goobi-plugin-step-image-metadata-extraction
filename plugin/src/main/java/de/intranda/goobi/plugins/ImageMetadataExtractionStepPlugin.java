@@ -186,12 +186,17 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
             String[] commandLineCall = { command, images.get(0).toString() };
 
             List<String> exiftoolResponse = new ArrayList<>();
-            java.lang.Process exiftool = Runtime.getRuntime().exec(commandLineCall);
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(exiftool.getInputStream()))) {
-                String s;
-                while ((s = reader.readLine()) != null) {
-                    exiftoolResponse.add(s);
+            try {
+                java.lang.Process exiftool = Runtime.getRuntime().exec(commandLineCall);
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(exiftool.getInputStream()))) {
+                    String s;
+                    while ((s = reader.readLine()) != null) {
+                        exiftoolResponse.add(s);
+                    }
                 }
+            } catch (IOException e1) {
+                log.error(e1);
+                return PluginReturnValue.ERROR;
             }
 
             // extract image metadata fields
