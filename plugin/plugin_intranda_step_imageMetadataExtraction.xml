@@ -6,16 +6,21 @@
           3.) project name matches and step name is *
           4.) project name and step name are *
 	-->
-    
+
     <config>
         <!-- which projects to use for (can be more then one, otherwise use *) -->
         <project>*</project>
         <step>*</step>
-        
-        <!-- sample parameter -->
-        <value>test</value>
-        <!-- display button to finish the task directly from within the entered plugin -->
-        <allowTaskFinishButtons>true</allowTaskFinishButtons>
+
+        <command>/usr/bin/exiftool</command>
+        <field line="Object Name" metadata="TitleDocMain" />
+        <!--         <field line="Headline" metadata="TitleDocMain" /> -->
+        <field line="Keywords" metadata="SubjectTopic" />
+        <field line="Special Instructions" metadata="Footnote" />
+        <field line="City" metadata="PlaceOfPublication" />
+        <field line="Source" metadata="singleDigCollection" />
+        <field line="Copyright Notice" metadata="AccessCondition" />
+        <field line="Caption-Abstract" metadata="Abstract" />
     </config>
 
 </config_plugin>
