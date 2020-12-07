@@ -57,6 +57,7 @@ import ugh.dl.Metadata;
 import ugh.dl.MetadataType;
 import ugh.dl.Prefs;
 import ugh.exceptions.UGHException;
+import ugh.fileformats.mets.MetsMods;
 
 @PluginImplementation
 @Log4j2
@@ -145,7 +146,8 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
         try {
             // open metadata
             Prefs prefs = process.getRegelsatz().getPreferences();
-            Fileformat ff = process.readMetadataFile();
+            Fileformat ff = new MetsMods(prefs);
+            ff.read(process.getMetadataFilePath());
 
             DigitalDocument dd = ff.getDigitalDocument();
             DocStruct logical = dd.getLogicalDocStruct();
@@ -217,14 +219,14 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
                                 }
                             }
                         } catch (Exception e) {
-                            log.error("Ignore invalid metadata errors during metadata import",e);
+                            log.error(e);
+                            return PluginReturnValue.ERROR;
                         }
                     }
                 }
             }
-
             // save metadata
-            process.writeMetadataFile(ff);
+            ff.write(process.getMetadataFilePath());
 
         } catch (UGHException | IOException | InterruptedException | SwapException | DAOException e) {
             log.error(e);
