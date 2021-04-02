@@ -2,7 +2,7 @@
 
 <img src="https://goobi.io/wp-content/uploads/logo_goobi_plugin.png" align="right" style="margin:0 0 20px 20px;" alt="Plugin for Goobi workflow" width="175" height="109">
 
-This is the ImageMetadataExtraction Goobi step plugin. A description for this plugin is still missing.
+This Step Plugin allows the extraction of metadata from image files in order to store them within the METS files.
 
 This is a plugin for Goobi workflow, the open source workflow tracking software for digitisation projects. More information about Goobi workflow is available under https://goobi.io. If you want to get in touch with the user community simply go to https://community.goobi.io.
 
@@ -15,8 +15,8 @@ Detail | Description
 **Plugin identifier**       | intranda_step_imageMetadataExtraction
 **Plugin type**             | Step plugin
 **Licence**                 | GPL 2.0 or newer    
-**Documentation (German)**  | - no documentation available -
-**Documentation (English)** | - no documentation available -
+**Documentation (German)**  | https://docs.goobi.io/goobi-workflow-plugins-de/step/intranda_step_imagemetadataextraction
+**Documentation (English)** | https://docs.goobi.io/goobi-workflow-plugins-en/step/intranda_step_imagemetadataextraction
 
 ## Goobi details
 
