@@ -71,8 +71,6 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
     private Process process;
     @Getter
     private String value;
-    @Getter
-    private boolean allowTaskFinishButtons;
     private String returnPath;
 
     private static Perl5Util perlUtil = new Perl5Util();
@@ -88,7 +86,6 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
         process = step.getProzess();
         // read parameters from correct block in configuration file
         SubnodeConfiguration myconfig = ConfigPlugins.getProjectAndStepConfig(title, step);
-        allowTaskFinishButtons = myconfig.getBoolean("allowTaskFinishButtons", false);
         log.info("ImageMetadataExtraction step plugin initialized");
         command = myconfig.getString("command", "/usr/bin/exiftool");
 
