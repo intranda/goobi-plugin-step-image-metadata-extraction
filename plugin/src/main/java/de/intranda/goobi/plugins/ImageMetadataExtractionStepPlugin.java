@@ -45,7 +45,6 @@ import org.goobi.production.plugin.interfaces.IStepPluginVersion2;
 
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.helper.StorageProvider;
-import de.sub.goobi.helper.exceptions.DAOException;
 import de.sub.goobi.helper.exceptions.SwapException;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
@@ -225,7 +224,7 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
             // save metadata
             ff.write(process.getMetadataFilePath());
 
-        } catch (UGHException | IOException | InterruptedException | SwapException | DAOException e) {
+        } catch (UGHException | IOException | SwapException e) {
             log.error(e);
         }
 
