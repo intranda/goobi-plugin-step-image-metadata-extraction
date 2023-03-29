@@ -30,12 +30,14 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.oro.text.perl.Perl5Util;
 import org.goobi.beans.Process;
+import org.goobi.beans.Processproperty;
 import org.goobi.beans.Step;
 import org.goobi.production.enums.PluginGuiType;
 import org.goobi.production.enums.PluginReturnValue;
@@ -45,7 +47,10 @@ import org.goobi.production.plugin.interfaces.IStepPluginVersion2;
 
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.helper.StorageProvider;
+import de.sub.goobi.helper.enums.PropertyType;
+import de.sub.goobi.helper.exceptions.DAOException;
 import de.sub.goobi.helper.exceptions.SwapException;
+import de.sub.goobi.persistence.managers.ProcessManager;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
@@ -55,6 +60,7 @@ import ugh.dl.Fileformat;
 import ugh.dl.Metadata;
 import ugh.dl.MetadataType;
 import ugh.dl.Prefs;
+import ugh.exceptions.MetadataTypeNotAllowedException;
 import ugh.exceptions.UGHException;
 import ugh.fileformats.mets.MetsMods;
 
@@ -75,6 +81,8 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
     private static Perl5Util perlUtil = new Perl5Util();
 
     private Map<String, String> metadataMap = new HashMap<>();
+    private Map<String, String> propertyMap = new HashMap<>();
+    private int propertyContainer = 0;
 
     private String command;
 
@@ -87,12 +95,18 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
         SubnodeConfiguration myconfig = ConfigPlugins.getProjectAndStepConfig(title, step);
         log.info("ImageMetadataExtraction step plugin initialized");
         command = myconfig.getString("command", "/usr/bin/exiftool");
-
+        propertyContainer = myconfig.getInt("propertyContainer");
         List<HierarchicalConfiguration> fieldList = myconfig.configurationsAt("field");
         for (HierarchicalConfiguration field : fieldList) {
             String line = field.getString("@line");
             String metadata = field.getString("@metadata");
-            metadataMap.put(line, metadata);
+            String property = field.getString("@property");
+            if(StringUtils.isNotBlank(metadata)) {                
+                metadataMap.put(line, metadata);
+            }
+            if(StringUtils.isNotBlank(property)) {
+                propertyMap.put(line, property);
+            }
         }
     }
 
@@ -179,56 +193,108 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
 
                 }
             }
-
-            // read image metadata from first image
-            String[] commandLineCall = { command, images.get(0).toString() };
-
-            List<String> exiftoolResponse = new ArrayList<>();
-            try {
-                java.lang.Process exiftool = Runtime.getRuntime().exec(commandLineCall);
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(exiftool.getInputStream()))) {
-                    String s;
-                    while ((s = reader.readLine()) != null) {
-                        exiftoolResponse.add(s);
-                    }
-                }
+            try {                
+                List<String> exiftoolResponse = readImageMetadata(images);
+                writeValues(prefs, logical, exiftoolResponse);
+                ff.write(process.getMetadataFilePath());
+                ProcessManager.saveProcess(process);
             } catch (IOException e1) {
                 log.error(e1);
                 return PluginReturnValue.ERROR;
+            } catch (Exception e) {
+                log.error(e.toString(), e);
+                return PluginReturnValue.ERROR;
             }
-
-            // extract image metadata fields
-            for (String line : exiftoolResponse) {
-                for (String startValue : metadataMap.keySet()) {
-                    if (line.startsWith(startValue)) {
-                        String value = line.split(":")[1].trim();
-                        try {
-                            if (StringUtils.isNotBlank(value)) {
-                                MetadataType metadataType = prefs.getMetadataTypeByName(metadataMap.get(startValue));
-                                List<? extends Metadata> oldMetadataList = logical.getAllMetadataByType(metadataType);
-                                if (oldMetadataList != null && oldMetadataList.size() > 0) {
-                                    oldMetadataList.get(0).setValue(value);
-                                } else {
-                                    Metadata md = new Metadata(prefs.getMetadataTypeByName(metadataMap.get(startValue)));
-                                    md.setValue(value);
-                                    logical.addMetadata(md);
-                                }
-                            }
-                        } catch (Exception e) {
-                            log.error(e);
-                            return PluginReturnValue.ERROR;
-                        }
-                    }
-                }
-            }
-            // save metadata
-            ff.write(process.getMetadataFilePath());
 
         } catch (UGHException | IOException | SwapException e) {
             log.error(e);
         }
 
         return PluginReturnValue.FINISH;
+    }
+
+    List<String> readImageMetadata(List<Path> images) throws IOException {
+        // read image metadata from first image
+        String[] commandLineCall = { command, images.get(0).toString() };
+
+        List<String> exiftoolResponse = new ArrayList<>();
+        java.lang.Process exiftool = Runtime.getRuntime().exec(commandLineCall);
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(exiftool.getInputStream()))) {
+            String s;
+            while ((s = reader.readLine()) != null) {
+                exiftoolResponse.add(s);
+            }
+        }
+
+        return exiftoolResponse;
+    }
+
+    void writeValues(Prefs prefs, DocStruct logical, List<String> exiftoolResponse) throws DAOException, MetadataTypeNotAllowedException {
+        for (String line : exiftoolResponse) {
+            writeMetadata(prefs, logical, line);
+            writeProperties(line);
+        }
+    }
+
+    void writeProperties(String line) {
+        for (Entry<String, String> entry : propertyMap.entrySet()) {
+            String imageMetadataName = entry.getKey();
+            String propertyTitle = entry.getValue();
+            if (line.startsWith(imageMetadataName)) {
+                if (line.contains(":")) {
+                    String value = line.replaceAll("^[^:]+:", "").trim(); //remove everything before first colon
+                    if (StringUtils.isNotBlank(value)) {
+                        addOrUpdateProperty(process.getEigenschaften(), propertyTitle, value, propertyContainer);
+                    }
+                }
+            }
+        }
+    }
+
+    Processproperty addOrUpdateProperty(List<Processproperty> properties, String propertyTitle, String value, int container) {
+        Processproperty prop = properties.stream().filter(p -> p.getTitel().equals(propertyTitle)).findAny().orElseGet(() -> {
+            Processproperty p = new Processproperty();
+            properties.add(p);
+            return p;
+        });
+        prop.setType(PropertyType.String);
+        prop.setProzess(process);
+        prop.setIstObligatorisch(false);
+        prop.setContainer(container);
+        prop.setTitel(propertyTitle);
+        prop.setWert(value);
+        return prop;
+    }
+
+    void writeMetadata(Prefs prefs, DocStruct logical, String line) throws MetadataTypeNotAllowedException, DAOException {
+        for (String startValue : metadataMap.keySet()) {
+            if (line.startsWith(startValue)) {
+                if (line.contains(":")) {
+                    String value = line.replaceAll("^[^:]+:", "").trim(); //remove everything before first colon
+                    if (StringUtils.isNotBlank(value)) {
+                        MetadataType metadataType = prefs.getMetadataTypeByName(metadataMap.get(startValue));
+                        List<? extends Metadata> oldMetadataList = logical.getAllMetadataByType(metadataType);
+                        if (oldMetadataList != null && oldMetadataList.size() > 0) {
+                            oldMetadataList.get(0).setValue(value);
+                        } else {
+                            Metadata md = new Metadata(prefs.getMetadataTypeByName(metadataMap.get(startValue)));
+                            md.setValue(value);
+                            logical.addMetadata(md);
+                        }
+                        Processproperty prop = new Processproperty();
+                        prop.setType(PropertyType.String);
+                        prop.setProzess(process);
+                        prop.setIstObligatorisch(false);
+                        prop.setContainer(0);
+                        prop.setTitel(startValue);
+                        prop.setWert(value);
+                        process.getEigenschaften().add(prop);
+                        ProcessManager.saveProcess(process);
+
+                    }
+                }
+            }
+        }
     }
 
     private static Comparator<Path> imageComparator = new Comparator<Path>() {
