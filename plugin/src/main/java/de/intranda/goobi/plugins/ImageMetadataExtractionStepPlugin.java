@@ -68,6 +68,7 @@ import ugh.fileformats.mets.MetsMods;
 @Log4j2
 public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
 
+    private static final long serialVersionUID = 8402386657234557111L;
     @Getter
     private String title = "intranda_step_imageMetadataExtraction";
     @Getter
@@ -101,7 +102,7 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
             String line = field.getString("@line");
             String metadata = field.getString("@metadata");
             String property = field.getString("@property");
-            if(StringUtils.isNotBlank(metadata)) {                
+            if(StringUtils.isNotBlank(metadata)) {
                 metadataMap.put(line, metadata);
             }
             if(StringUtils.isNotBlank(property)) {
@@ -193,7 +194,7 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
 
                 }
             }
-            try {                
+            try {
                 List<String> exiftoolResponse = readImageMetadata(images);
                 writeValues(prefs, logical, exiftoolResponse);
                 ff.write(process.getMetadataFilePath());
@@ -257,7 +258,7 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
             properties.add(p);
             return p;
         });
-        prop.setType(PropertyType.String);
+        prop.setType(PropertyType.STRING);
         prop.setProzess(process);
         prop.setIstObligatorisch(false);
         prop.setContainer(container);
@@ -282,7 +283,7 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
                             logical.addMetadata(md);
                         }
                         Processproperty prop = new Processproperty();
-                        prop.setType(PropertyType.String);
+                        prop.setType(PropertyType.STRING);
                         prop.setProzess(process);
                         prop.setIstObligatorisch(false);
                         prop.setContainer(0);
