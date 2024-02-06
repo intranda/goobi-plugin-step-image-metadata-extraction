@@ -31,11 +31,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.lang.StringUtils;
-import org.apache.oro.text.perl.Perl5Util;
 import org.goobi.beans.Process;
 import org.goobi.beans.Processproperty;
 import org.goobi.beans.Step;
@@ -79,13 +80,13 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
     private String value;
     private String returnPath;
 
-    private static Perl5Util perlUtil = new Perl5Util();
-
     private Map<String, String> metadataMap = new HashMap<>();
     private Map<String, String> propertyMap = new HashMap<>();
     private int propertyContainer = 0;
 
     private String command;
+
+    private static Pattern filenamePattern = Pattern.compile("/(.*)_(\\d+)\\.jpg/");
 
     @Override
     public void initialize(Step step, String returnPath) {
@@ -102,10 +103,10 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
             String line = field.getString("@line");
             String metadata = field.getString("@metadata");
             String property = field.getString("@property");
-            if(StringUtils.isNotBlank(metadata)) {
+            if (StringUtils.isNotBlank(metadata)) {
                 metadataMap.put(line, metadata);
             }
-            if(StringUtils.isNotBlank(property)) {
+            if (StringUtils.isNotBlank(property)) {
                 propertyMap.put(line, property);
             }
         }
@@ -214,7 +215,7 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
         return PluginReturnValue.FINISH;
     }
 
-    List<String> readImageMetadata(List<Path> images) throws IOException {
+    private List<String> readImageMetadata(List<Path> images) throws IOException {
         // read image metadata from first image
         String[] commandLineCall = { command, images.get(0).toString() };
 
@@ -230,14 +231,14 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
         return exiftoolResponse;
     }
 
-    void writeValues(Prefs prefs, DocStruct logical, List<String> exiftoolResponse) throws DAOException, MetadataTypeNotAllowedException {
+    private void writeValues(Prefs prefs, DocStruct logical, List<String> exiftoolResponse) throws DAOException, MetadataTypeNotAllowedException {
         for (String line : exiftoolResponse) {
             writeMetadata(prefs, logical, line);
             writeProperties(line);
         }
     }
 
-    void writeProperties(String line) {
+    private void writeProperties(String line) {
         for (Entry<String, String> entry : propertyMap.entrySet()) {
             String imageMetadataName = entry.getKey();
             String propertyTitle = entry.getValue();
@@ -252,7 +253,7 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
         }
     }
 
-    Processproperty addOrUpdateProperty(List<Processproperty> properties, String propertyTitle, String value, int container) {
+    private Processproperty addOrUpdateProperty(List<Processproperty> properties, String propertyTitle, String value, int container) {
         Processproperty prop = properties.stream().filter(p -> p.getTitel().equals(propertyTitle)).findAny().orElseGet(() -> {
             Processproperty p = new Processproperty();
             properties.add(p);
@@ -267,19 +268,19 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
         return prop;
     }
 
-    void writeMetadata(Prefs prefs, DocStruct logical, String line) throws MetadataTypeNotAllowedException, DAOException {
+    private void writeMetadata(Prefs prefs, DocStruct logical, String line) throws MetadataTypeNotAllowedException, DAOException {
         for (String startValue : metadataMap.keySet()) {
             if (line.startsWith(startValue)) {
                 if (line.contains(":")) {
-                    String value = line.replaceAll("^[^:]+:", "").trim(); //remove everything before first colon
-                    if (StringUtils.isNotBlank(value)) {
+                    String val = line.replaceAll("^[^:]+:", "").trim(); //remove everything before first colon
+                    if (StringUtils.isNotBlank(val)) {
                         MetadataType metadataType = prefs.getMetadataTypeByName(metadataMap.get(startValue));
                         List<? extends Metadata> oldMetadataList = logical.getAllMetadataByType(metadataType);
-                        if (oldMetadataList != null && oldMetadataList.size() > 0) {
-                            oldMetadataList.get(0).setValue(value);
+                        if (oldMetadataList != null && !oldMetadataList.isEmpty()) {
+                            oldMetadataList.get(0).setValue(val);
                         } else {
                             Metadata md = new Metadata(prefs.getMetadataTypeByName(metadataMap.get(startValue)));
-                            md.setValue(value);
+                            md.setValue(val);
                             logical.addMetadata(md);
                         }
                         Processproperty prop = new Processproperty();
@@ -288,7 +289,7 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
                         prop.setIstObligatorisch(false);
                         prop.setContainer(0);
                         prop.setTitel(startValue);
-                        prop.setWert(value);
+                        prop.setWert(val);
                         process.getEigenschaften().add(prop);
                         ProcessManager.saveProcess(process);
 
@@ -304,12 +305,16 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
         public int compare(Path p1, Path p2) {
             Integer imageId1 = 0;
             Integer imageId2 = 0;
-            if (perlUtil.match("/(.*)_(\\d+)\\.jpg/", p1.getFileName().toString())) {
-                imageId1 = Integer.valueOf(perlUtil.group(2));
+
+            Matcher m = filenamePattern.matcher(p1.getFileName().toString());
+            if (m.find()) {
+                imageId1 = Integer.valueOf(m.group(2));
             }
-            if (perlUtil.match("/(.*)_(\\d+)\\.jpg/", p2.getFileName().toString())) {
-                imageId2 = Integer.valueOf(perlUtil.group(2));
+            m = filenamePattern.matcher(p2.getFileName().toString());
+            if (m.find()) {
+                imageId2 = Integer.valueOf(m.group(2));
             }
+
             return imageId1.compareTo(imageId2);
         }
     };
