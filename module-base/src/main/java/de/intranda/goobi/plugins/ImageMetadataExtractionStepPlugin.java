@@ -82,7 +82,7 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
 
     private Map<String, String> metadataMap = new HashMap<>();
     private Map<String, String> propertyMap = new HashMap<>();
-    private int propertyContainer = 0;
+    private String propertyContainer = "0";
 
     private String command;
 
@@ -97,7 +97,7 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
         SubnodeConfiguration myconfig = ConfigPlugins.getProjectAndStepConfig(title, step);
         log.info("ImageMetadataExtraction step plugin initialized");
         command = myconfig.getString("command", "/usr/bin/exiftool");
-        propertyContainer = myconfig.getInt("propertyContainer");
+        propertyContainer = myconfig.getString("propertyContainer");
         List<HierarchicalConfiguration> fieldList = myconfig.configurationsAt("field");
         for (HierarchicalConfiguration field : fieldList) {
             String line = field.getString("@line");
@@ -253,7 +253,7 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
         }
     }
 
-    private Processproperty addOrUpdateProperty(List<Processproperty> properties, String propertyTitle, String value, int container) {
+    private Processproperty addOrUpdateProperty(List<Processproperty> properties, String propertyTitle, String value, String container) {
         Processproperty prop = properties.stream().filter(p -> p.getTitel().equals(propertyTitle)).findAny().orElseGet(() -> {
             Processproperty p = new Processproperty();
             properties.add(p);
@@ -287,7 +287,7 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
                         prop.setType(PropertyType.STRING);
                         prop.setProzess(process);
                         prop.setIstObligatorisch(false);
-                        prop.setContainer(0);
+                        prop.setContainer("0");
                         prop.setTitel(startValue);
                         prop.setWert(val);
                         process.getEigenschaften().add(prop);
@@ -299,7 +299,7 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
         }
     }
 
-    private static Comparator<Path> imageComparator = new Comparator<Path>() {
+    private static Comparator<Path> imageComparator = new Comparator<>() {
 
         @Override
         public int compare(Path p1, Path p2) {
