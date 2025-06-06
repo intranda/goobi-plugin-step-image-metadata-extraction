@@ -37,6 +37,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.lang.StringUtils;
+import org.goobi.beans.GoobiProperty;
 import org.goobi.beans.Process;
 import org.goobi.beans.Processproperty;
 import org.goobi.beans.Step;
@@ -253,15 +254,14 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
         }
     }
 
-    private Processproperty addOrUpdateProperty(List<Processproperty> properties, String propertyTitle, String value, String container) {
-        Processproperty prop = properties.stream().filter(p -> p.getTitel().equals(propertyTitle)).findAny().orElseGet(() -> {
+    private GoobiProperty addOrUpdateProperty(List<GoobiProperty> properties, String propertyTitle, String value, String container) {
+    	GoobiProperty prop = properties.stream().filter(p -> p.getTitel().equals(propertyTitle)).findAny().orElseGet(() -> {
             Processproperty p = new Processproperty();
             properties.add(p);
             return p;
         });
         prop.setType(PropertyType.STRING);
-        prop.setProzess(process);
-        prop.setIstObligatorisch(false);
+        prop.setOwner(process);
         prop.setContainer(container);
         prop.setTitel(propertyTitle);
         prop.setWert(value);
@@ -286,7 +286,6 @@ public class ImageMetadataExtractionStepPlugin implements IStepPluginVersion2 {
                         Processproperty prop = new Processproperty();
                         prop.setType(PropertyType.STRING);
                         prop.setProzess(process);
-                        prop.setIstObligatorisch(false);
                         prop.setContainer("0");
                         prop.setTitel(startValue);
                         prop.setWert(val);
