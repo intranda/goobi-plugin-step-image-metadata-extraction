@@ -3,6 +3,10 @@ title: Extraktion von Bildmetadaten
 identifier: intranda_step_imageMetadataExtraction
 published: true
 description: Dieses Step Plugin erlaubt die Extraktion von Metadaten aus Bilddateien, um diese innerhalb der METS-Dateien zu speichern.
+keywords:
+    - Goobi workflow
+    - Plugin
+    - Step Plugin
 ---
 ## Einführung
 Mit Hilfe dieses Plugins können Metadaten aus Bilddateien extraiert und innerhalb der METS-Dateien von Goobi gespeichert werden. Hier findet im Hintergrund eine Nutzung des Linux-Programms ExifTool statt, um dessen gelesene Bildmetadaten gemäß individueller Konfiguration zu überführen.
