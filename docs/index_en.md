@@ -40,7 +40,7 @@ The configuration of the plugin is structured as follows:
 <config_plugin>
 
     <config>
-        <!-- which projects to use for (can be more then one, otherwise use *) -->
+        <!-- which projects to use for (can be more than one, otherwise use *) -->
         <project>*</project>
         <step>*</step>
 
@@ -71,4 +71,4 @@ The definition of fields is done with the following parameters:
 | Value | Description |
 | :--- | :--- |
 | `line` | This parameter defines the name of the metadata within the result of ExifTool. Enter here accordingly the name how the metadata is present within the image. |
-| `metadata` | This parameter determines under which metadata type the content of the read metatum is stored in the METS file. The internal name of the metadata type as defined in the corresponding rule set is used. It should be noted here that the metadata are always stored at the level of the highest logical structural element (e.g. a monograph) and not at subordinate logical or physical elements. |
+| `metadata` | This parameter determines under which metadata type the content of the read metadata is stored in the METS file. The internal name of the metadata type as defined in the corresponding rule set is used. It should be noted here that the metadata are always stored at the level of the highest logical structural element (e.g. a monograph) and not at subordinate logical or physical elements. |

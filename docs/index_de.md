@@ -9,7 +9,7 @@ keywords:
     - Step Plugin
 ---
 ## Einführung
-Mit Hilfe dieses Plugins können Metadaten aus Bilddateien extraiert und innerhalb der METS-Dateien von Goobi gespeichert werden. Hier findet im Hintergrund eine Nutzung des Linux-Programms ExifTool statt, um dessen gelesene Bildmetadaten gemäß individueller Konfiguration zu überführen.
+Mit Hilfe dieses Plugins können Metadaten aus Bilddateien extrahiert und innerhalb der METS-Dateien von Goobi gespeichert werden. Hier findet im Hintergrund eine Nutzung des Linux-Programms ExifTool statt, um dessen gelesene Bildmetadaten gemäß individueller Konfiguration zu überführen.
 
 
 ## Installation
@@ -31,7 +31,7 @@ Zur Inbetriebnahme des Plugins muss dieses in einer Aufgabe im Workflow aktivier
 
 ![Zuweisung des Plugins zu einer bestimmten Aufgabe](screen1_de.png)
 
-Nachdem das Plugin vollständig installiert und eingerichtet wurde, wird es üblicherweise automatisch innerhalb des Workflows ausgeführt, so dass keine manuelle Interaktion mit dem Nutzer erfolgt. Stattdessen erfolgt der Aufruf des Plugins durch den Workflow im Hintergrund und führt die Extraktion der Bildmetadaten automatisch aus. Hierzu wird die erst Bilddatei aus dem media-Verzeichnis des Goobi-Vorgangs geöffnet, deren Metadaten ausgelesen und auf der obersten logischen Ebene der METS-Datei als das konfigurierte Metadatum gespeichert.
+Nachdem das Plugin vollständig installiert und eingerichtet wurde, wird es üblicherweise automatisch innerhalb des Workflows ausgeführt, so dass keine manuelle Interaktion mit dem Nutzer erfolgt. Stattdessen erfolgt der Aufruf des Plugins durch den Workflow im Hintergrund und führt die Extraktion der Bildmetadaten automatisch aus. Hierzu wird die erste Bilddatei aus dem media-Verzeichnis des Goobi-Vorgangs geöffnet, deren Metadaten ausgelesen und auf der obersten logischen Ebene der METS-Datei als das konfigurierte Metadatum gespeichert.
 
 
 ## Konfiguration
@@ -64,12 +64,12 @@ Der Block `<config>` kann für verschiedene Projekte oder Arbeitsschritte wieder
 | :--- | :--- |
 | `project` | Dieser Parameter legt fest, für welches Projekt der aktuelle Block `<config>` gelten soll. Verwendet wird hierbei der Name des Projektes. Dieser Parameter kann mehrfach pro `<config>` Block vorkommen. |
 | `step` | Dieser Parameter steuert, für welche Arbeitsschritte der Block `<config>` gelten soll. Verwendet wird hier der Name des Arbeitsschritts. Dieser Parameter kann mehrfach pro `<config>` Block vorkommen. |
-| `command` | Innerhalb dieses Parameters wird der Pfad zu dem Program `ExifTool` angegeben. Hierbei handelt es sich um ein serverseitig installiertes Programm, das die Metdaten aus Bilddateien auslesen kann. |
+| `command` | Innerhalb dieses Parameters wird der Pfad zu dem Programm `ExifTool` angegeben. Hierbei handelt es sich um ein serverseitig installiertes Programm, das die Metadaten aus Bilddateien auslesen kann. |
 | `field` | Für jedes gewünschte Metadatum, das pro Bild ausgelesen werden soll, kann jeweils ein `field` gegeben werden, das aus den Attributen `line` und `metadata` besteht. |
 
 Die Definition von Feldern, erfolgt mit den folgenden Parametern:
 
 | Wert | Beschreibung |
 | :--- | :--- |
-| `line` | Mit diesem Parameter wird festgelegt, wie das Metdatum innerhalb des Ergebnisses von ExifTool heisst. Geben Sie hier entsprechend den Namen an, wie das Metadatum innerhalb des Bildes vorliegt. |
-| `metadata` | Dieser Parameter legt fest, unter welchem Metadatentyp der Inhalt des gelesenen Metatums in der METS-Datei gespeichert wird. Verwendet wird hierbei der interne Name des Metadatentyps, wie er im zugehörigen Regelsatz definiert wurde. Zu beachten ist hierbei, dass die Metaten jeweils auf der Ebene des höchsten logischen Strukturelements (z.B. einer Monographie) gespeichert werden und nicht an untergeordneten logischen oder physischen Elementen. |
+| `line` | Mit diesem Parameter wird festgelegt, wie das Metadatum innerhalb des Ergebnisses von ExifTool heißt. Geben Sie hier entsprechend den Namen an, wie das Metadatum innerhalb des Bildes vorliegt. |
+| `metadata` | Dieser Parameter legt fest, unter welchem Metadatentyp der Inhalt des gelesenen Metadatums in der METS-Datei gespeichert wird. Verwendet wird hierbei der interne Name des Metadatentyps, wie er im zugehörigen Regelsatz definiert wurde. Zu beachten ist hierbei, dass die Metadaten jeweils auf der Ebene des höchsten logischen Strukturelements (z.B. einer Monographie) gespeichert werden und nicht an untergeordneten logischen oder physischen Elementen. |
